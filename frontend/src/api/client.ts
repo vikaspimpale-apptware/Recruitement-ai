@@ -1,7 +1,30 @@
 import axios from 'axios'
 
+const env = (import.meta as unknown as {
+  env: Record<string, string | boolean | undefined>
+}).env
+
+const configuredApiHost = String(env.VITE_API_URL || env.VITE_BACKEND_URL || '').trim()
+
+const isLocalHost =
+  typeof window !== 'undefined' &&
+  ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+
+const isDevMode = Boolean(env.DEV) || isLocalHost
+
+const fallbackApiHost =
+  isDevMode
+    ? 'http://localhost:8000'
+    : 'https://recruitement-ai-backend.vercel.app'
+
+export const API_ORIGIN = (configuredApiHost || fallbackApiHost)
+  .replace(/\/+$/, '')
+  .replace(/\/api$/i, '')
+
+export const API_BASE_URL = `${API_ORIGIN}/api`
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 

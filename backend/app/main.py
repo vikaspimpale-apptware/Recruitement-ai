@@ -8,6 +8,29 @@ from app.core.database import engine, Base
 from app.api import api_router
 import app.models  # noqa: F401 — ensure all models are registered
 
+def _parse_cors_origins() -> list[str]:
+    """Build a stable CORS allow-list for local + deployed frontends."""
+    raw_values = [
+        settings.FRONTEND_URL,
+        settings.FRONTEND_URLS,
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://recruitement-ai.vercel.app",
+        "https://recruitment-ai.vercel.app",
+    ]
+    origins: list[str] = []
+    seen: set[str] = set()
+    for raw in raw_values:
+        for item in str(raw or "").split(","):
+            origin = item.strip().rstrip("/")
+            if not origin or origin in seen:
+                continue
+            seen.add(origin)
+            origins.append(origin)
+    return origins
+
 
 async def _run_migrations(conn):
     """Apply any missing column additions that CREATE TABLE won't handle on existing DBs."""
@@ -46,7 +69,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_parse_cors_origins(),
+    allow_origin_regex=r"^https://[a-zA-Z0-9-]+\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,4 +85,9 @@ app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 @app.get("/health")
 async def health():
+    return {"status": "ok", "version": "0.1.0"}
+
+
+@app.get("/api/health")
+async def api_health():
     return {"status": "ok", "version": "0.1.0"}

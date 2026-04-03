@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     MICROSOFT_REDIRECT_URI: str = "http://localhost:8000/api/calendar/outlook/callback"
 
     FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URLS: str = ""
 
     class Config:
         env_file = ".env"

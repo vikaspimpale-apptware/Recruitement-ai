@@ -3,6 +3,7 @@ import { Send, BrainCircuit, User, Loader2, Zap, AlertCircle } from 'lucide-reac
 import type { ChatMessage } from '@/types'
 import Button from '@/components/ui/Button'
 import { clsx } from 'clsx'
+import { API_BASE_URL, API_ORIGIN } from '@/api/client'
 
 const SUGGESTIONS = [
   'Find me 10 senior Python engineers in Bangalore open to work',
@@ -106,7 +107,9 @@ export default function Chat() {
     const token = localStorage.getItem('access_token')
     if (!token) return
 
-    const wsUrl = `ws://localhost:8000/api/chat/ws`
+    const wsProtocol = API_ORIGIN.startsWith('https://') ? 'wss://' : 'ws://'
+    const wsHost = API_ORIGIN.replace(/^https?:\/\//, '')
+    const wsUrl = `${wsProtocol}${wsHost}/api/chat/ws`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
@@ -199,7 +202,7 @@ export default function Chat() {
       // HTTP fallback
       try {
         const token = localStorage.getItem('access_token')
-        const response = await fetch('/api/chat/message', {
+        const response = await fetch(`${API_BASE_URL}/chat/message`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ message: msg, history: messages.map((m) => ({ role: m.role, content: m.content })) }),
@@ -235,7 +238,7 @@ export default function Chat() {
       } catch (err) {
         setMessages((prev) => [...prev, {
           role: 'assistant',
-          content: 'Connection issue. Make sure the backend server is running at localhost:8000.',
+          content: `Connection issue. Backend not reachable at ${API_ORIGIN}.`,
           error: true,
         }])
       } finally {
@@ -326,8 +329,14 @@ export default function Chat() {
                   sendMessage()
                 }
               }}
-              placeholder={wsStatus === 'connected' ? 'Ask anything about your recruitment pipeline...' : 'Connecting to AI assistant...'}
-              disabled={wsStatus === 'error'}
+              placeholder={
+                wsStatus === 'connected'
+                  ? 'Ask anything about your recruitment pipeline...'
+                  : wsStatus === 'error'
+                  ? 'WebSocket unavailable, using HTTP fallback...'
+                  : 'Connecting to AI assistant...'
+              }
+              disabled={false}
               rows={1}
               className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-40 overflow-y-auto apptware-hide-scrollbar disabled:bg-slate-50 disabled:text-slate-400"
               style={{ minHeight: '48px' }}
@@ -335,7 +344,7 @@ export default function Chat() {
           </div>
           <Button
             onClick={() => sendMessage()}
-            disabled={!input.trim() || streaming || wsStatus === 'error'}
+            disabled={!input.trim() || streaming}
             className="h-12 w-12 rounded-xl p-0 justify-center"
           >
             {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
