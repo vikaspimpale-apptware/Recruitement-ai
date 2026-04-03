@@ -6,18 +6,18 @@ const env = (import.meta as unknown as {
 
 const configuredApiHost = String(env.VITE_API_URL || env.VITE_BACKEND_URL || '').trim()
 
-const isLocalHost =
-  typeof window !== 'undefined' &&
-  ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+// const isLocalHost =
+//   typeof window !== 'undefined' &&
+//   ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
 
-const isDevMode = Boolean(env.DEV) || isLocalHost
+// const isDevMode = Boolean(env.DEV) || isLocalHost
 
-const fallbackApiHost =
-  isDevMode
-    ? 'http://localhost:8000'
-    : 'https://recruitement-ai-backend.vercel.app'
+// const fallbackApiHost =
+//   isDevMode
+//     ? 'http://localhost:8000'
+//     : 'https://recruitement-ai-backend.vercel.app'
 
-export const API_ORIGIN = (configuredApiHost || fallbackApiHost)
+export const API_ORIGIN = configuredApiHost
   .replace(/\/+$/, '')
   .replace(/\/api$/i, '')
 
