@@ -4,22 +4,31 @@ const env = (import.meta as unknown as {
   env: Record<string, string | boolean | undefined>
 }).env
 
-const configuredApiHost = String(env.VITE_API_URL || env.VITE_BACKEND_URL || '').trim()
+function normalizeApiOrigin(raw: string): string {
+  const value = String(raw || '').trim().replace(/\/+$/, '').replace(/\/api$/i, '')
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  if (value.startsWith('//')) {
+    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:'
+    return `${protocol}${value}`
+  }
+  const localLike = /^(localhost|127\.0\.0\.1|\[::1\]|::1)(:\d+)?$/i.test(value)
+  return `${localLike ? 'http' : 'https'}://${value}`
+}
 
-// const isLocalHost =
-//   typeof window !== 'undefined' &&
-//   ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+const configuredApiHost = normalizeApiOrigin(String(env.VITE_API_URL || env.VITE_BACKEND_URL || ''))
 
-// const isDevMode = Boolean(env.DEV) || isLocalHost
+const isLocalHost =
+  typeof window !== 'undefined' &&
+  ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
 
-// const fallbackApiHost =
-//   isDevMode
-//     ? 'http://localhost:8000'
-//     : 'https://recruitement-ai-backend.vercel.app'
+const isDevMode = Boolean(env.DEV) || isLocalHost
 
-export const API_ORIGIN = configuredApiHost
-  .replace(/\/+$/, '')
-  .replace(/\/api$/i, '')
+const fallbackApiHost = isDevMode
+  ? 'http://localhost:8000'
+  : 'https://recruitement-ai-backend.vercel.app'
+
+export const API_ORIGIN = normalizeApiOrigin(configuredApiHost || fallbackApiHost)
 
 export const API_BASE_URL = `${API_ORIGIN}/api`
 

@@ -8,6 +8,16 @@ from app.core.database import engine, Base
 from app.api import api_router
 import app.models  # noqa: F401 — ensure all models are registered
 
+def _normalize_origin(raw: str) -> str:
+    value = str(raw or "").strip().rstrip("/")
+    if not value:
+        return ""
+    if value.startswith("http://") or value.startswith("https://"):
+        return value
+    local_like = value.startswith("localhost") or value.startswith("127.0.0.1")
+    return f"{'http' if local_like else 'https'}://{value}"
+
+
 def _parse_cors_origins() -> list[str]:
     """Build a stable CORS allow-list for local + deployed frontends."""
     raw_values = [
@@ -24,7 +34,7 @@ def _parse_cors_origins() -> list[str]:
     seen: set[str] = set()
     for raw in raw_values:
         for item in str(raw or "").split(","):
-            origin = item.strip().rstrip("/")
+            origin = _normalize_origin(item)
             if not origin or origin in seen:
                 continue
             seen.add(origin)
