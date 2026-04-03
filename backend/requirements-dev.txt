@@ -28,6 +28,7 @@ anthropic==0.43.1
 # Pydantic & Config
 pydantic==2.10.4
 pydantic-settings==2.7.0
+email-validator
 python-dotenv==1.0.1
 
 # HTTP Client
