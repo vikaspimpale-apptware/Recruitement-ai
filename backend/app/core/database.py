@@ -1,9 +1,13 @@
+import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
 # Detect SQLite dev mode — used when no PostgreSQL is configured
 _db_url = settings.DATABASE_URL
+if os.getenv("VERCEL") == "1" and _db_url.startswith("sqlite"):
+    # Vercel filesystem is read-only except /tmp.
+    _db_url = "sqlite+aiosqlite:////tmp/recruitment_ai.db"
 _is_sqlite = _db_url.startswith("sqlite")
 
 _engine_kwargs: dict = {
