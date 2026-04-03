@@ -1,0 +1,43 @@
+# Dev requirements — uses SQLite (no PostgreSQL needed)
+# For production use requirements.txt (adds asyncpg, psycopg2, pgvector)
+
+# FastAPI & Server
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+websockets==14.1
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# Database — SQLite only
+sqlalchemy==2.0.36
+aiosqlite==0.20.0
+
+# LangGraph / LangChain
+langgraph==0.2.60
+langchain==0.3.14
+langchain-openai==0.3.1
+langchain-anthropic==0.3.3
+langchain-community==0.3.14
+openai==1.59.5
+anthropic==0.43.1
+
+# Pydantic & Config
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+
+# HTTP Client
+httpx==0.28.1
+
+# Email
+sendgrid==6.11.0
+
+# NLP & Date Parsing
+python-dateutil==2.9.0.post0
+
+# Utilities
+tenacity==9.0.0
